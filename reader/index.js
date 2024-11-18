@@ -14,7 +14,7 @@ console.log({ dbPath });
 // Initialize the LevelDB database using levelup and leveldown
 const db = levelup(leveldown(dbPath));
 
-const stateRoot = "0xdd2b02b747fc61ac1d9a586324287a06f940dfbb370070f0f176685ac63c9029"; // Block 40021727
+const stateRoot = "0x997847c28515099e9a040dc84c560cb83bd58a1708144b9572697c884a0b58fd"; // Block 40021727
 const stateRootBuffer = Buffer.from(stateRoot.slice(2), "hex");
 
 // Initialize the trie with the database and the state root
