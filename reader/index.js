@@ -22,6 +22,7 @@ const addressBuffer = Buffer.from(address.slice(2), "hex");
 
 (async function () {
   const data = await trie.get(addressBuffer);
+  console.log({ data });
   const acc = Account.fromAccountData(data);
 
   console.log("-------State-------");
