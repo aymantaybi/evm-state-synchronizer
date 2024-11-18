@@ -21,7 +21,7 @@ const address = "0xc1eb47de5d549d45a871e32d9d082e7ac5d2e3ed";
 const addressBuffer = Buffer.from(address.slice(2), "hex");
 
 (async function () {
-  let value = trie.get(stateRootBuffer);
+  let value = await trie.get(stateRootBuffer);
 
   console.log({ value });
 
