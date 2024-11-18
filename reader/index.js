@@ -21,12 +21,7 @@ const address = "0xc1eb47de5d549d45a871e32d9d082e7ac5d2e3ed";
 const addressBuffer = Buffer.from(address.slice(2), "hex");
 
 (async function () {
-  for await (const key of db.keys()) {
-    console.log(key);
-  }
-  console.log("Done!");
-
-  /* const data = await trie.get(addressBuffer);
+  const data = await trie.get(addressBuffer);
   const acc = Account.fromAccountData(data);
 
   console.log("-------State-------");
@@ -47,5 +42,5 @@ const addressBuffer = Buffer.from(address.slice(2), "hex");
     })
     .on("end", () => {
       console.log("Finished reading storage.");
-    }); */
+    });
 })();
