@@ -4,6 +4,8 @@ const { SecureTrie: Trie } = require("merkle-patricia-tree");
 
 const db = new Level("../../chaindata");
 
+db.keys;
+
 const stateRoot = "0xdd2b02b747fc61ac1d9a586324287a06f940dfbb370070f0f176685ac63c9029"; // 40021727
 const stateRootBuffer = Buffer.from(stateRoot.slice(2), "hex");
 
@@ -13,7 +15,12 @@ const address = "0xc1eb47de5d549d45a871e32d9d082e7ac5d2e3ed";
 const addressBuffer = Buffer.from(address.slice(2), "hex");
 
 (async function () {
-  const data = await trie.get(addressBuffer);
+  for await (const key of db.keys()) {
+    console.log(key);
+  }
+  console.log("Done!");
+
+  /* const data = await trie.get(addressBuffer);
   const acc = Account.fromAccountData(data);
 
   console.log("-------State-------");
@@ -34,5 +41,5 @@ const addressBuffer = Buffer.from(address.slice(2), "hex");
     })
     .on("end", () => {
       console.log("Finished reading storage.");
-    });
+    }); */
 })();
