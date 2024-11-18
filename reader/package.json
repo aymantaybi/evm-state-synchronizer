@@ -8,5 +8,10 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "ethereumjs-util": "^7.1.5",
+    "level": "^8.0.1",
+    "merkle-patricia-tree": "^4.2.4"
+  }
 }
