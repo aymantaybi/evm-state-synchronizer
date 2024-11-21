@@ -37,8 +37,8 @@ const addressBuffer = Buffer.from(address.slice(2), "hex");
   const stream = storageTrie.createReadStream();
   stream
     .on("data", (data) => {
-      console.log(`key: ${bufferToHex(data.key)}`);
-      console.log(`Value: ${bufferToHex(rlp.decode(data.value))}`);
+      console.log(`key: ${bufferToHex(data.key).toString()}`);
+      console.log(`Value: ${bufferToHex(rlp.decode(data.value)).toString()}`);
     })
     .on("end", () => {
       console.log("Finished reading storage.");
