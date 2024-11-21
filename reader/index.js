@@ -17,7 +17,7 @@ const stateRootBuffer = Buffer.from(stateRoot.slice(2), "hex");
 
 const trie = new Trie(db, stateRootBuffer);
 
-const address = "0xc1eb47de5d549d45a871e32d9d082e7ac5d2e3ed";
+const address = "0x0b7007c13325c48911f73a2dad5fa5dcbf808adc"; // usdc
 const addressBuffer = Buffer.from(address.slice(2), "hex");
 
 (async function () {
