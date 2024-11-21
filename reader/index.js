@@ -17,11 +17,30 @@ const stateRootBuffer = Buffer.from(stateRoot.slice(2), "hex");
 
 const trie = new Trie(db, stateRootBuffer);
 
+const address = "0xc1eb47de5d549d45a871e32d9d082e7ac5d2e3ed";
+const addressBuffer = Buffer.from(address.slice(2), "hex");
+
 (async function () {
-  trie
-    .createReadStream()
-    .on("data", console.log)
+  const data = await trie.get(addressBuffer);
+  const acc = Account.fromAccountData(data);
+
+  console.log("-------State-------");
+  console.log(`nonce: ${acc.nonce}`);
+  console.log(`balance in wei: ${acc.balance}`);
+  console.log(`storageRoot: ${bufferToHex(acc.stateRoot)}`);
+  console.log(`codeHash: ${bufferToHex(acc.codeHash)}`);
+
+  const storageTrie = trie.copy();
+  storageTrie.root = acc.stateRoot;
+
+  console.log("------Storage------");
+  const stream = storageTrie.createReadStream();
+  stream
+    .on("data", (data) => {
+      console.log(`key: ${bufferToHex(data.key)}`);
+      console.log(`Value: ${bufferToHex(rlp.decode(data.value))}`);
+    })
     .on("end", () => {
-      console.log("End.");
+      console.log("Finished reading storage.");
     });
 })();
