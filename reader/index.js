@@ -2,7 +2,7 @@ const { Level } = require("level");
 const { Account, BN, bufferToHex, rlp, keccak256, toBuffer } = require("ethereumjs-util");
 const { SecureTrie: Trie } = require("merkle-patricia-tree");
 
-const db = new Level("../roninchain/ronin/chaindata");
+const db = new Level("../../roninchain/ronin/chaindata");
 
 db.on("open", () => {
   console.log("Database is open and ready for operations.");
