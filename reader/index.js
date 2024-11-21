@@ -22,7 +22,7 @@ const addressBuffer = Buffer.from(address.slice(2), "hex");
 
 (async function () {
   const data = await trie.get(addressBuffer);
-  const acc = Account.fromAccountData(data);
+  const acc = Account.fromRlpSerializedAccount(data);
 
   console.log("-------State-------");
   console.log(`nonce: ${acc.nonce}`);
