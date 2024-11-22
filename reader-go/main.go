@@ -1,99 +1,80 @@
 package main
 
 import (
-	"encoding/hex"
 	"fmt"
-	"log"
-	"math/big"
+	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb/leveldb"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/aymantaybi/ronin/common"
+	"github.com/aymantaybi/ronin/common/fdlimit"
+	"github.com/aymantaybi/ronin/common/hexutil"
+	"github.com/aymantaybi/ronin/core/rawdb"
+	"github.com/aymantaybi/ronin/trie"
 )
 
 func main() {
-	// Database path
-	dbPath := "../../roninchain/ronin/chaindata" // Adjust this path
 
-	// Open the LevelDB database
-	db, err := leveldb.New(dbPath, 0, 0, "")
+	handles := MakeDatabaseHandles(0)
+
+	Directory := "../../roninchain/ronin/chaindata"
+
+	freezer := filepath.Join(Directory, "ancient")
+
+	db, err := rawdb.Open(rawdb.OpenOptions{
+		Type:              "leveldb",
+		Directory:         Directory,
+		AncientsDirectory: freezer,
+		Namespace:         "",
+		Cache:             0,
+		Handles:           handles,
+		ReadOnly:          true,
+	})
+
 	if err != nil {
-		log.Fatalf("Failed to open LevelDB database: %v", err)
+		fmt.Printf("Error opening database %v", err)
 	}
-	defer db.Close()
-	fmt.Println("Database is open and ready for operations.")
 
-	// Create a trie database
-	trieDb := trie.New(db)
+	root, err := hexutil.Decode("0xddc8f1b241f9090547501d92c2a943a41e8b076f14f2836be2cd8b4b1f6053c4")
 
-	// State root hash
-	stateRootHex := "0xddc8f1b241f9090547501d92c2a943a41e8b076f14f2836be2cd8b4b1f6053c4"
-	stateRoot := common.HexToHash(stateRootHex)
+	stateRoot := common.BytesToHash(root)
 
-	// Initialize the state trie
-	trie, err := trie.New(stateRoot, trieDb)
+	theTrie, err := trie.New(stateRoot, trie.NewDatabase(db))
+
 	if err != nil {
-		log.Fatalf("Failed to create state trie: %v", err)
+		fmt.Printf("Error opening database %v", err)
 	}
 
-	// Account address
-	addressHex := "0x0b7007c13325c48911f73a2dad5fa5dcbf808adc"
-	address := common.HexToAddress(addressHex)
-
-	// Get the account data
-	addrHash := crypto.Keccak256(address.Bytes())
-	accountRLP, err := trie.Get(addrHash)
-	if err != nil {
-		log.Fatalf("Failed to get account data: %v", err)
-	}
-	if accountRLP == nil {
-		fmt.Println("Account not found in state trie.")
-		return
-	}
-
-	// Decode the account
-	var account state.Account
-	if err := rlp.DecodeBytes(accountRLP, &account); err != nil {
-		log.Fatalf("Failed to decode account data: %v", err)
-	}
-
-	// Display account information
-	fmt.Println("-------State-------")
-	fmt.Printf("Nonce: %d\n", account.Nonce)
-	fmt.Printf("Balance in wei: %s\n", account.Balance.String())
-	fmt.Printf("Storage Root: %s\n", account.Root.Hex())
-	fmt.Printf("Code Hash: %s\n", common.BytesToHash(account.CodeHash).Hex())
-
-	// Access the storage trie
-	storageTrie, err := trie.New(account.Root, trieDb)
-	if err != nil {
-		log.Fatalf("Failed to create storage trie: %v", err)
-	}
-
-	// Iterate over storage trie
-	fmt.Println("------Storage------")
-	it := trie.NewIterator(storageTrie.NodeIterator(nil))
+	var count int64
+	it := trie.NewIterator(theTrie.NodeIterator(nil))
 	for it.Next() {
-		// Decode storage key and value
-		key := it.Key
-		value := it.Value
-
-		// The storage key is hashed; to get the original key, reverse the hashing
-		// which may not be feasible without knowing the original key.
-		// We'll display the hashed key.
-
-		fmt.Printf("Key Hash: %s\n", hex.EncodeToString(key))
-
-		// Decode the value
-		var storageValue big.Int
-		if err := rlp.DecodeBytes(value, &storageValue); err != nil {
-			log.Printf("Failed to decode storage value: %v", err)
-			continue
-		}
-		fmt.Printf("Value: %s\n", storageValue.String())
+		fmt.Printf("  %d. key %#x: %#x\n", count, it.Key, it.Value)
+		count++
 	}
-	fmt.Println("Finished reading storage.")
+
+}
+
+// MakeDatabaseHandles raises out the number of allowed file handles per process
+// for Geth and returns half of the allowance to assign to the database.
+func MakeDatabaseHandles(max int) int {
+	limit, err := fdlimit.Maximum()
+	if err != nil {
+		fmt.Println("Failed to retrieve file descriptor allowance: %v", err)
+	}
+	switch {
+	case max == 0:
+		// User didn't specify a meaningful value, use system limits
+	case max < 128:
+		// User specified something unhealthy, just use system defaults
+		fmt.Println("File descriptor limit invalid (<128)", "had", max, "updated", limit)
+	case max > limit:
+		// User requested more than the OS allows, notify that we can't allocate it
+		fmt.Println("Requested file descriptors denied by OS", "req", max, "limit", limit)
+	default:
+		// User limit is meaningful and within allowed range, use that
+		limit = max
+	}
+	raised, err := fdlimit.Raise(uint64(limit))
+	if err != nil {
+		fmt.Println("Failed to raise file descriptor allowance: %v", err)
+	}
+	return int(raised / 2) // Leave half for networking and other stuff
 }
