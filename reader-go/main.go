@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/aymantaybi/ronin/common"
@@ -15,6 +16,12 @@ import (
 )
 
 func main() {
+
+	args := os.Args
+
+	r := args[1]
+
+	fmt.Printf("Access state at root: %v\n", r)
 
 	handles := MakeDatabaseHandles(0)
 
