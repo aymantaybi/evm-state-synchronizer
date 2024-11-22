@@ -8,6 +8,9 @@ import (
 	"github.com/aymantaybi/ronin/common/fdlimit"
 	"github.com/aymantaybi/ronin/common/hexutil"
 	"github.com/aymantaybi/ronin/core/rawdb"
+	"github.com/aymantaybi/ronin/core/types"
+	"github.com/aymantaybi/ronin/crypto"
+	"github.com/aymantaybi/ronin/rlp"
 	"github.com/aymantaybi/ronin/trie"
 )
 
@@ -35,6 +38,10 @@ func main() {
 
 	root, err := hexutil.Decode("0xddc8f1b241f9090547501d92c2a943a41e8b076f14f2836be2cd8b4b1f6053c4")
 
+	if err != nil {
+		fmt.Printf("Error decoding root %v", err)
+	}
+
 	stateRoot := common.BytesToHash(root)
 
 	theTrie, err := trie.New(stateRoot, trie.NewDatabase(db))
@@ -43,12 +50,34 @@ func main() {
 		fmt.Printf("Error opening database %v", err)
 	}
 
-	var count int64
+	// Address to retrieve
+	addr := common.HexToAddress("0xc1eb47de5d549d45a871e32d9d082e7ac5d2e3ed")
+	key := crypto.Keccak256(addr.Bytes())
+
+	// Get the account data from the trie
+	value := theTrie.Get(key)
+
+	// Decode the RLP-encoded account data
+	var account types.StateAccount
+	err = rlp.DecodeBytes(value, &account)
+	if err != nil {
+		fmt.Printf("Error decoding account data: %v", err)
+		return
+	}
+
+	// Print account details
+	fmt.Printf("Account data for address %s:\n", addr.Hex())
+	fmt.Printf("  Nonce: %d\n", account.Nonce)
+	fmt.Printf("  Balance: %s\n", account.Balance.String())
+	fmt.Printf("  Storage Root: %x\n", account.Root.Bytes())
+	fmt.Printf("  Code Hash: %x\n", account.CodeHash)
+
+	/* var count int64
 	it := trie.NewIterator(theTrie.NodeIterator(nil))
 	for it.Next() {
 		fmt.Printf("  %d. key %#x: %#x\n", count, it.Key, it.Value)
 		count++
-	}
+	} */
 
 }
 
