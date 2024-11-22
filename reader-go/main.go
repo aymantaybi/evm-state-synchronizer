@@ -47,7 +47,7 @@ func main() {
 	theTrie, err := trie.New(stateRoot, trie.NewDatabase(db))
 
 	if err != nil {
-		fmt.Printf("Error opening database %v", err)
+		fmt.Printf("Error creating storage state trie: %v\n", err)
 	}
 
 	// Address to retrieve
@@ -67,18 +67,28 @@ func main() {
 
 	// Print account details
 	fmt.Printf("Account data for address %s:\n", addr.Hex())
-	fmt.Printf("  Nonce: %d\n", account.Nonce)
-	fmt.Printf("  Balance: %s\n", account.Balance.String())
-	fmt.Printf("  Storage Root: %x\n", account.Root.Bytes())
-	fmt.Printf("  Code Hash: %x\n", account.CodeHash)
+	fmt.Printf("Nonce: %d\n", account.Nonce)
+	fmt.Printf("Balance: %s\n", account.Balance.String())
+	fmt.Printf("Storage Root: %x\n", account.Root.Bytes())
+	fmt.Printf("Code Hash: %x\n", account.CodeHash)
 
-	/* var count int64
-	it := trie.NewIterator(theTrie.NodeIterator(nil))
+	// Create the storage trie using the account's storage root
+	storageTrie, err := trie.New(account.Root, trie.NewDatabase(db))
+	if err != nil {
+		fmt.Printf("Error creating account storage trie: %v\n", err)
+		return
+	}
+
+	// Iterate over the storage trie
+	it := trie.NewIterator(storageTrie.NodeIterator(nil))
+	var count int64
 	for it.Next() {
-		fmt.Printf("  %d. key %#x: %#x\n", count, it.Key, it.Value)
+		// Print the storage key and value
 		count++
-	} */
+		fmt.Printf("Count: %d. key %#x: %#x\n", count, it.Key, it.Value)
+	}
 
+	fmt.Printf("Reading storage keys / values done!")
 }
 
 // MakeDatabaseHandles raises out the number of allowed file handles per process
@@ -86,7 +96,7 @@ func main() {
 func MakeDatabaseHandles(max int) int {
 	limit, err := fdlimit.Maximum()
 	if err != nil {
-		fmt.Println("Failed to retrieve file descriptor allowance: %v", err)
+		fmt.Printf("Failed to retrieve file descriptor allowance: %v", err)
 	}
 	switch {
 	case max == 0:
