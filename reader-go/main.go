@@ -19,9 +19,10 @@ func main() {
 
 	args := os.Args
 
-	r := args[1]
+	stateRootInput := args[1]
+	accountAddressInput := args[2]
 
-	fmt.Printf("Access state at root: %v\n", r)
+	fmt.Printf("Access account (%v) state at root: %v\n", accountAddressInput, stateRootInput)
 
 	handles := MakeDatabaseHandles(0)
 
@@ -45,7 +46,7 @@ func main() {
 		fmt.Printf("Error opening database %v", err)
 	}
 
-	root, err := hexutil.Decode("0xddc8f1b241f9090547501d92c2a943a41e8b076f14f2836be2cd8b4b1f6053c4")
+	root, err := hexutil.Decode(stateRootInput) // "0xddc8f1b241f9090547501d92c2a943a41e8b076f14f2836be2cd8b4b1f6053c4"
 
 	if err != nil {
 		fmt.Printf("Error decoding root %v", err)
@@ -60,7 +61,7 @@ func main() {
 	}
 
 	// Address to retrieve
-	addr := common.HexToAddress("0xc1eb47de5d549d45a871e32d9d082e7ac5d2e3ed")
+	addr := common.HexToAddress(accountAddressInput) // 0xc1eb47de5d549d45a871e32d9d082e7ac5d2e3ed
 	key := crypto.Keccak256(addr.Bytes())
 
 	// Get the account data from the trie
