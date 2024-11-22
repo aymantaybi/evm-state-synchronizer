@@ -18,6 +18,8 @@ func main() {
 
 	handles := MakeDatabaseHandles(0)
 
+	fmt.Printf("Handle: %v\n", handles)
+
 	Directory := "../../roninchain/ronin/chaindata"
 
 	freezer := filepath.Join(Directory, "ancient")
@@ -88,7 +90,7 @@ func main() {
 		fmt.Printf("Count: %d. key %#x: %#x\n", count, it.Key, it.Value)
 	}
 
-	fmt.Printf("Reading storage keys / values done!")
+	fmt.Printf("Reading storage keys / values done!\n")
 }
 
 // MakeDatabaseHandles raises out the number of allowed file handles per process
