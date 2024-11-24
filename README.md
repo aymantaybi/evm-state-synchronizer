@@ -9,3 +9,5 @@ merkle-patricia-tree: https://www.npmjs.com/package/merkle-patricia-tree (Other 
 Using the merkle-patricia-tree package read the contract storage keys & values, save the pairs as JSON file.
 
 Read the json file, load the contracts storage in an in-memory revm db, consume the logs of the next blocks until the latest block, using custom handlers to sync the in-memory db.
+
+![Alt text](flowchart.png)
