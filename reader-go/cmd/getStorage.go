@@ -9,7 +9,6 @@ import (
 
 	"github.com/aymantaybi/ronin/common"
 	"github.com/aymantaybi/ronin/common/hexutil"
-	"github.com/aymantaybi/ronin/crypto"
 	"github.com/aymantaybi/ronin/trie"
 	"github.com/spf13/cobra"
 )
@@ -69,20 +68,21 @@ to quickly create a Cobra application.`,
 		}
 
 		// The storage key (slot) you want to read
-		storageKey := common.HexToHash(args[2]) // Provide the storage slot as the third argument ex: 0x5401e35c6516fe0403b686f8c632ea869cf7983f3f3e6eeea0fb274b009668e3
-
-		// Ethereum storage trie uses the Keccak256 hash of the storage key
-		hashedKey := crypto.Keccak256Hash(storageKey.Bytes())
+		storageKey, err := hexutil.Decode(args[2]) // Provide the storage slot as the third argument ex: 0x5401e35c6516fe0403b686f8c632ea869cf7983f3f3e6eeea0fb274b009668e3
+		if err != nil {
+			fmt.Printf("Error decoding storage key: %v\n", err)
+			return
+		}
 
 		// Get the value from the storage trie
-		storageValue, err := accountStorageTrie.TryGet(hashedKey.Bytes())
+		storageValue, err := accountStorageTrie.TryGet(storageKey)
 		if err != nil {
 			fmt.Printf("Error getting storage value: %v\n", err)
 			return
 		}
 
 		// Print the storage value
-		fmt.Printf("Storage value at slot %s: %s\n", storageKey.Hex(), hexutil.Encode(storageValue))
+		fmt.Printf("Storage value at slot %s: %s\n", args[2], hexutil.Encode(storageValue))
 
 	},
 }
