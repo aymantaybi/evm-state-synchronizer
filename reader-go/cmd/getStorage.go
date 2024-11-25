@@ -5,10 +5,12 @@ package cmd
 
 import (
 	"fmt"
+	"math/big"
 	"reader-go/helpers"
 
 	"github.com/aymantaybi/ronin/common"
 	"github.com/aymantaybi/ronin/common/hexutil"
+	"github.com/aymantaybi/ronin/crypto"
 	"github.com/aymantaybi/ronin/rlp"
 	"github.com/aymantaybi/ronin/trie"
 	"github.com/spf13/cobra"
@@ -69,22 +71,36 @@ to quickly create a Cobra application.`,
 		}
 
 		// The storage key (slot) you want to read
-		storageKey := common.HexToHash(args[2]) // Provide the storage slot as the third argument
+		slotHex := args[2] // Provide the storage slot as the third argument
+
+		// Convert the storage slot to a big.Int
+		slotBigInt := new(big.Int)
+		_, ok := slotBigInt.SetString(slotHex, 0) // Parses hex string with 0x prefix
+		if !ok {
+			fmt.Printf("Invalid storage slot: %s\n", slotHex)
+			return
+		}
+
+		// Pad the slot to 32 bytes (256 bits) big-endian
+		slotBytes := common.LeftPadBytes(slotBigInt.Bytes(), 32)
+
+		// Hash the slot key
+		hashedSlotKey := crypto.Keccak256Hash(slotBytes)
 
 		// Get the value from the storage trie
-		storageValueEnc, err := accountStorageTrie.TryGet(storageKey.Bytes())
+		storageValueEnc, err := accountStorageTrie.TryGet(hashedSlotKey.Bytes())
 		if err != nil {
 			fmt.Printf("Error getting storage value: %v\n", err)
 			return
 		}
 
 		if storageValueEnc == nil {
-			fmt.Printf("No value found at storage slot %s\n", storageKey.Hex())
+			fmt.Printf("No value found at storage slot %s\n", slotHex)
 			return
 		}
 
 		// Decode the RLP-encoded value
-		var storageValue common.Hash // or []byte, depending on expected type
+		var storageValue *big.Int
 		err = rlp.DecodeBytes(storageValueEnc, &storageValue)
 		if err != nil {
 			fmt.Printf("Error decoding storage value: %v\n", err)
@@ -92,7 +108,7 @@ to quickly create a Cobra application.`,
 		}
 
 		// Print the storage value
-		fmt.Printf("Storage value at slot %s: %s\n", storageKey.Hex(), storageValue.Hex())
+		fmt.Printf("Storage value at slot %s: %s\n", slotHex, storageValue.String())
 
 	},
 }
