@@ -9,6 +9,7 @@ import (
 
 	"github.com/aymantaybi/ronin/common"
 	"github.com/aymantaybi/ronin/common/hexutil"
+	"github.com/aymantaybi/ronin/rlp"
 	"github.com/aymantaybi/ronin/trie"
 	"github.com/spf13/cobra"
 )
@@ -68,21 +69,30 @@ to quickly create a Cobra application.`,
 		}
 
 		// The storage key (slot) you want to read
-		storageKey, err := hexutil.Decode(args[2]) // Provide the storage slot as the third argument ex: 0x5401e35c6516fe0403b686f8c632ea869cf7983f3f3e6eeea0fb274b009668e3
-		if err != nil {
-			fmt.Printf("Error decoding storage key: %v\n", err)
-			return
-		}
+		storageKey := common.HexToHash(args[2]) // Provide the storage slot as the third argument
 
 		// Get the value from the storage trie
-		storageValue, err := accountStorageTrie.TryGet(storageKey)
+		storageValueEnc, err := accountStorageTrie.TryGet(storageKey.Bytes())
 		if err != nil {
 			fmt.Printf("Error getting storage value: %v\n", err)
 			return
 		}
 
+		if storageValueEnc == nil {
+			fmt.Printf("No value found at storage slot %s\n", storageKey.Hex())
+			return
+		}
+
+		// Decode the RLP-encoded value
+		var storageValue common.Hash // or []byte, depending on expected type
+		err = rlp.DecodeBytes(storageValueEnc, &storageValue)
+		if err != nil {
+			fmt.Printf("Error decoding storage value: %v\n", err)
+			return
+		}
+
 		// Print the storage value
-		fmt.Printf("Storage value at slot %s: %s\n", args[2], hexutil.Encode(storageValue))
+		fmt.Printf("Storage value at slot %s: %s\n", storageKey.Hex(), storageValue.Hex())
 
 	},
 }
