@@ -30,8 +30,8 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		stateRootInput := args[1]
-		accountAddressInput := args[2]
+		stateRootInput := args[0]
+		accountAddressInput := args[1]
 
 		fmt.Printf("Access account (%v) state at root: %v\n", accountAddressInput, stateRootInput)
 
