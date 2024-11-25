@@ -108,7 +108,7 @@ to quickly create a Cobra application.`,
 		}
 
 		// Print the storage value
-		fmt.Printf("Storage value at slot %s: %s\n", slotHex, storageValue.String())
+		fmt.Printf("Storage value at slot %s: %s\n", slotHex, storageValue.Text(16))
 
 	},
 }
