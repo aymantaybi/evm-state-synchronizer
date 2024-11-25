@@ -2,16 +2,19 @@ package helpers
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/aymantaybi/ronin/common/fdlimit"
+	"github.com/aymantaybi/ronin/core/rawdb"
+	"github.com/aymantaybi/ronin/ethdb"
 )
 
 // MakeDatabaseHandles raises out the number of allowed file handles per process
 // for Geth and returns half of the allowance to assign to the database.
-func MakeDatabaseHandles(max int) int {
+func makeDatabaseHandles(max int) int {
 	limit, err := fdlimit.Maximum()
 	if err != nil {
-		fmt.Printf("Failed to retrieve file descriptor allowance: %v", err)
+		fmt.Printf("Failed to retrieve file descriptor allowance: %v\n", err)
 	}
 	switch {
 	case max == 0:
@@ -28,7 +31,21 @@ func MakeDatabaseHandles(max int) int {
 	}
 	raised, err := fdlimit.Raise(uint64(limit))
 	if err != nil {
-		fmt.Printf("Failed to raise file descriptor allowance: %v \n", err)
+		fmt.Printf("Failed to raise file descriptor allowance: %v\n", err)
 	}
 	return int(raised / 2) // Leave half for networking and other stuff
+}
+
+func OpenRawDB(directory string) (ethdb.Database, error) {
+	handles := makeDatabaseHandles(0)
+	freezer := filepath.Join(directory, "ancient")
+	return rawdb.Open(rawdb.OpenOptions{
+		Type:              "leveldb",
+		Directory:         directory,
+		AncientsDirectory: freezer,
+		Namespace:         "",
+		Cache:             0,
+		Handles:           handles,
+		ReadOnly:          true,
+	})
 }
