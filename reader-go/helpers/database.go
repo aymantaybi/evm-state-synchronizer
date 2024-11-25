@@ -1,14 +1,10 @@
-package main
+package helpers
 
 import (
 	"fmt"
 
 	"github.com/aymantaybi/ronin/common/fdlimit"
 )
-
-func Greet() {
-
-}
 
 // MakeDatabaseHandles raises out the number of allowed file handles per process
 // for Geth and returns half of the allowance to assign to the database.
@@ -32,7 +28,7 @@ func MakeDatabaseHandles(max int) int {
 	}
 	raised, err := fdlimit.Raise(uint64(limit))
 	if err != nil {
-		fmt.Println("Failed to raise file descriptor allowance: %v", err)
+		fmt.Printf("Failed to raise file descriptor allowance: %v \n", err)
 	}
 	return int(raised / 2) // Leave half for networking and other stuff
 }
